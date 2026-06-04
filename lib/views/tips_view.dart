@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../controllers/home_controller.dart';
+import '../routes/app_routes.dart';
 
 class TipsView extends StatefulWidget {
   const TipsView({super.key});
@@ -8,9 +10,12 @@ class TipsView extends StatefulWidget {
   State<TipsView> createState() => _TipsViewState();
 }
 
-class _TipsViewState extends State<TipsView>
-    with SingleTickerProviderStateMixin {
+class _TipsViewState extends State<TipsView> with SingleTickerProviderStateMixin {
   final HomeController _controller = HomeController();
+  
+  final Map<int, bool> _likedPosts = {};
+  final Map<int, int> _userRatings = {};
+  
   late AnimationController _animationController;
 
   @override
@@ -18,9 +23,8 @@ class _TipsViewState extends State<TipsView>
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1200),
     );
-
     _animationController.forward();
   }
 
@@ -33,262 +37,342 @@ class _TipsViewState extends State<TipsView>
   @override
   Widget build(BuildContext context) {
     final tips = _controller.lifestyleTips;
-    // Extraemos el consejo destacado (Hero) y filtramos el resto para la lista
-    final featuredTip = tips.firstWhere((t) => t['featured'] == true);
-    final otherTips = tips.where((t) => t['featured'] != true).toList();
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header de la sección
-            FadeTransition(
-              opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                CurvedAnimation(
-                  parent: _animationController,
-                  curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
-                ),
-              ),
-              child: SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0.0, 0.2),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _animationController,
-                        curve: const Interval(
-                          0.0,
-                          0.4,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+        title: Text(
+          'Comunidad',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1,
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.05),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(Icons.notifications_active_outlined, color: Colors.black87),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+      body: ListView.builder(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top + 80, 
+          bottom: 100,
+        ),
+        itemCount: tips.length,
+        itemBuilder: (context, index) {
+          final tip = tips[index];
+          final isLiked = _likedPosts[index] ?? false;
+          final currentRating = _userRatings[index] ?? 0;
+          final tipColor = tip['color'] as Color;
+
+          // Calcular el delay para efecto en cascada (staggered animation)
+          final double start = (index * 0.15).clamp(0.0, 1.0);
+          final double end = (start + 0.5).clamp(0.0, 1.0);
+
+          final slideAnimation = Tween<Offset>(
+            begin: const Offset(0.0, 0.3),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(
+              parent: _animationController,
+              curve: Interval(start, end, curve: Curves.easeOutCubic),
+            ),
+          );
+
+          final fadeAnimation = Tween<double>(
+            begin: 0.0,
+            end: 1.0,
+          ).animate(
+            CurvedAnimation(
+              parent: _animationController,
+              curve: Interval(start, end, curve: Curves.easeOut),
+            ),
+          );
+
+          return FadeTransition(
+            opacity: fadeAnimation,
+            child: SlideTransition(
+              position: slideAnimation,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
                     ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Descubre',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -1,
-                        color: Colors.black87,
+                    // Header (Autor)
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  tipColor.withValues(alpha: 0.8),
+                                  tipColor,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: tipColor.withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              tip['icon'] as IconData,
+                              color: Theme.of(context).colorScheme.surface,
+                              size: 20,
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  tip['category'],
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                                Text(
+                                  'Experto • Hace 2h',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.more_horiz_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Consejos de expertos para tu estilo de vida.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
+                    
+                    // Área de "Media" simulada
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.article,
+                          arguments: tip,
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 180,
+                        margin: const EdgeInsets.symmetric(horizontal: 20.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          gradient: LinearGradient(
+                            colors: [
+                              tipColor.withValues(alpha: 0.1),
+                              tipColor.withValues(alpha: 0.02),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          border: Border.all(
+                            color: tipColor.withValues(alpha: 0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Hero(
+                            tag: 'icon_${tip['title']}', // Hero animation para transición fluida
+                            child: Icon(
+                              tip['icon'] as IconData,
+                              size: 80,
+                              color: tipColor.withValues(alpha: 0.2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Contenido de Texto
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tip['title'],
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.7,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              height: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            tip['desc'],
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              height: 1.5,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(height: 20),
+                    
+                    // Footer (Reacciones)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _likedPosts[index] = !isLiked;
+                                  });
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isLiked ? Colors.redAccent.withValues(alpha: 0.1) : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      AnimatedScale(
+                                        scale: isLiked ? 1.2 : 1.0,
+                                        duration: const Duration(milliseconds: 150),
+                                        child: Icon(
+                                          isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                          color: isLiked ? Colors.redAccent : Theme.of(context).colorScheme.onSurfaceVariant,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        isLiked ? '124' : '123',
+                                        style: TextStyle(
+                                          color: isLiked ? Colors.redAccent : Theme.of(context).colorScheme.onSurfaceVariant,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              IconButton(
+                                icon: Icon(Icons.chat_bubble_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
+                                onPressed: () {
+                                  Navigator.pushNamed(context, AppRoutes.article, arguments: tip);
+                                },
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: List.generate(5, (starIndex) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _userRatings[index] = starIndex + 1;
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                                    child: AnimatedScale(
+                                      scale: starIndex < currentRating ? 1.2 : 1.0,
+                                      duration: const Duration(milliseconds: 200),
+                                      curve: Curves.elasticOut,
+                                      child: Icon(
+                                        Icons.star_rounded,
+                                        color: starIndex < currentRating ? Colors.amber : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-
-            // Tarjeta Hero (Consejo Principal)
-            FadeTransition(
-              opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                CurvedAnimation(
-                  parent: _animationController,
-                  curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
-                ),
-              ),
-              child: SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0.0, 0.1),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _animationController,
-                        curve: const Interval(
-                          0.0,
-                          0.4,
-                          curve: Curves.easeOutCubic,
-                        ),
-                      ),
-                    ),
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.black, // Estilo sólido / Next.js
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              featuredTip['category'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Icon(featuredTip['icon'], color: Colors.white70),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        featuredTip['title'],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        featuredTip['desc'],
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 14,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.menu_book_rounded,
-                            color: Colors.white54,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Lectura de ${featuredTip['readTime']}',
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 36),
-
-            // Título de la lista secundaria
-            const Text(
-              'Explorar por temas',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Lista de otros consejos
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: otherTips.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final tip = otherTips[index];
-                final double start = (index * 0.15).clamp(0.0, 1.0);
-                final double end = (start + 0.4).clamp(0.0, 1.0);
-
-                return FadeTransition(
-                  opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
-                    CurvedAnimation(
-                      parent: _animationController,
-                      curve: Interval(start, end, curve: Curves.easeOut),
-                    ),
-                  ),
-                  child: SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0.0, 0.5),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: _animationController,
-                            curve: Interval(
-                              start,
-                              end,
-                              curve: Curves.easeOutCubic,
-                            ),
-                          ),
-                        ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      leading: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: (tip['color'] as Color).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          tip['icon'] as IconData,
-                          color: tip['color'] as Color,
-                        ),
-                      ),
-                      title: Text(
-                        tip['title'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      subtitle: Text(
-                        tip['desc'],
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 13,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 100), // Espaciado final
-          ],
-        ),
+          );
+        },
       ),
     );
   }

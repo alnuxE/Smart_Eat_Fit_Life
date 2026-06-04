@@ -102,7 +102,7 @@ class _DetailViewState extends State<DetailView>
       appBar: AppBar(
         title: Text(
           metric.title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -123,11 +123,15 @@ class _DetailViewState extends State<DetailView>
                     width: double.infinity,
                     padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: Colors.black, // Estilo sólido premium
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF374151), Color(0xFF111827)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -155,7 +159,7 @@ class _DetailViewState extends State<DetailView>
                               children: [
                                 Text(
                                   _currentValue!,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 48,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -206,19 +210,19 @@ class _DetailViewState extends State<DetailView>
                       runSpacing:
                           12, // Espacio vertical si los botones bajan de línea
                       children: [
-                        const Text(
+                        Text(
                           'Historial Detallado',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         // Selector interactivo y animado
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -242,7 +246,7 @@ class _DetailViewState extends State<DetailView>
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.white
+                                        ? Theme.of(context).colorScheme.surface
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(8),
                                     boxShadow: isSelected
@@ -265,8 +269,8 @@ class _DetailViewState extends State<DetailView>
                                           ? FontWeight.bold
                                           : FontWeight.w500,
                                       color: isSelected
-                                          ? Colors.black
-                                          : Colors.black54,
+                                          ? Theme.of(context).colorScheme.onSurface
+                                          : Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
@@ -294,7 +298,7 @@ class _DetailViewState extends State<DetailView>
                         bottom: 16,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(
                           24,
                         ), // Bordes más suaves
@@ -305,7 +309,7 @@ class _DetailViewState extends State<DetailView>
                             offset: const Offset(0, 4),
                           ),
                         ],
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                       ),
                       child: LineChart(
                         key: ValueKey(
@@ -316,12 +320,12 @@ class _DetailViewState extends State<DetailView>
                           lineTouchData: LineTouchData(
                             handleBuiltInTouches: true,
                             touchTooltipData: LineTouchTooltipData(
-                              getTooltipColor: (touchedSpot) => Colors.black,
+                              getTooltipColor: (touchedSpot) => Theme.of(context).colorScheme.onSurface,
                               getTooltipItems: (List<LineBarSpot> touchedSpots) {
                                 return touchedSpots.map((barSpot) {
                                   return LineTooltipItem(
                                     '${barSpot.y.toStringAsFixed(0)} ${metric.unit}',
-                                    const TextStyle(
+                                    TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
@@ -338,7 +342,7 @@ class _DetailViewState extends State<DetailView>
                                   return spotIndexes.map((spotIndex) {
                                     return TouchedSpotIndicatorData(
                                       FlLine(
-                                        color: Colors.black.withValues(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(
                                           alpha: 0.3,
                                         ),
                                         strokeWidth: 1,
@@ -349,9 +353,9 @@ class _DetailViewState extends State<DetailView>
                                             (spot, percent, barData, index) {
                                               return FlDotCirclePainter(
                                                 radius: 8,
-                                                color: Colors.black,
+                                                color: Theme.of(context).colorScheme.onSurface,
                                                 strokeWidth: 4,
-                                                strokeColor: Colors.white,
+                                                strokeColor: Theme.of(context).colorScheme.surface,
                                               );
                                             },
                                       ),
@@ -365,7 +369,7 @@ class _DetailViewState extends State<DetailView>
                             drawVerticalLine: false,
                             getDrawingHorizontalLine: (value) {
                               return FlLine(
-                                color: Colors.grey.shade100,
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 strokeWidth: 1,
                               );
                             },
@@ -401,8 +405,8 @@ class _DetailViewState extends State<DetailView>
                                     axisSide: meta.axisSide,
                                     child: Text(
                                       label,
-                                      style: const TextStyle(
-                                        color: Colors.black45,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -419,8 +423,8 @@ class _DetailViewState extends State<DetailView>
                                     axisSide: meta.axisSide,
                                     child: Text(
                                       '${value.toInt()}',
-                                      style: const TextStyle(
-                                        color: Colors.black45,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -438,7 +442,7 @@ class _DetailViewState extends State<DetailView>
                                         .map((data) => FlSpot(data.x, data.y))
                                         .toList(),
                               isCurved: true,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                               barWidth: 3,
                               isStrokeCapRound: true,
                               dotData: FlDotData(
@@ -446,7 +450,7 @@ class _DetailViewState extends State<DetailView>
                                 getDotPainter: (spot, percent, barData, index) {
                                   return FlDotCirclePainter(
                                     radius: 5,
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     strokeWidth: 2,
                                     strokeColor: Colors.white,
                                   );
@@ -456,8 +460,8 @@ class _DetailViewState extends State<DetailView>
                                 show: true,
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.black.withValues(alpha: 0.3),
-                                    Colors.black.withValues(alpha: 0.0),
+                                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.0),
                                   ],
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
@@ -479,8 +483,8 @@ class _DetailViewState extends State<DetailView>
         opacity: fadeAnim3,
         child: FloatingActionButton.extended(
           onPressed: () => _showAddRecordBottomSheet(context, metric),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.onSurface,
+          foregroundColor: Theme.of(context).colorScheme.surface,
           elevation: 4,
           icon: const Icon(Icons.add_rounded),
           label: const Text(
@@ -498,7 +502,7 @@ class _DetailViewState extends State<DetailView>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       isScrollControlled:
           true, // Importante para que el panel no sea tapado por el teclado
       shape: const RoundedRectangleBorder(
@@ -536,8 +540,8 @@ class _DetailViewState extends State<DetailView>
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
                               color: selectedTime == 'Día'
-                                  ? Colors.black
-                                  : Colors.grey.shade100,
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             alignment: Alignment.center,
@@ -545,8 +549,8 @@ class _DetailViewState extends State<DetailView>
                               '☀ Día',
                               style: TextStyle(
                                 color: selectedTime == 'Día'
-                                    ? Colors.white
-                                    : Colors.black87,
+                                    ? Theme.of(context).colorScheme.surface
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -563,8 +567,8 @@ class _DetailViewState extends State<DetailView>
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
                               color: selectedTime == 'Noche'
-                                  ? Colors.black
-                                  : Colors.grey.shade100,
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             alignment: Alignment.center,
@@ -572,8 +576,8 @@ class _DetailViewState extends State<DetailView>
                               '🌙 Noche',
                               style: TextStyle(
                                 color: selectedTime == 'Noche'
-                                    ? Colors.white
-                                    : Colors.black87,
+                                    ? Theme.of(context).colorScheme.surface
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -596,8 +600,8 @@ class _DetailViewState extends State<DetailView>
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: Colors.black,
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.onSurface,
                           width: 2,
                         ),
                       ),
@@ -632,8 +636,8 @@ class _DetailViewState extends State<DetailView>
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.onSurface,
+                        foregroundColor: Theme.of(context).colorScheme.surface,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

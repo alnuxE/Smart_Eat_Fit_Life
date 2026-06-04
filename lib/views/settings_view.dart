@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/settings_controller.dart';
+import '../main.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -21,25 +22,25 @@ class _SettingsViewState extends State<SettingsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Configuración',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -1,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               'Ajusta tus preferencias y cuenta.',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
 
             _buildSectionHeader('Cuenta'),
             _buildListTile(
@@ -55,7 +56,7 @@ class _SettingsViewState extends State<SettingsView> {
               onTap: () {},
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _buildSectionHeader('Preferencias'),
             _buildSwitchTile(
               icon: Icons.notifications_none_rounded,
@@ -67,14 +68,52 @@ class _SettingsViewState extends State<SettingsView> {
                 });
               },
             ),
-            _buildSwitchTile(
-              icon: Icons.dark_mode_outlined,
-              title: 'Modo Oscuro',
-              value: _controller.darkModeEnabled,
-              onChanged: (val) {
-                setState(() {
-                  _controller.toggleDarkMode(val);
-                });
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: themeNotifier,
+              builder: (context, currentMode, child) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      currentMode == ThemeMode.dark ? Icons.dark_mode_outlined : (currentMode == ThemeMode.light ? Icons.light_mode_outlined : Icons.brightness_auto),
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Apariencia',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                  trailing: DropdownButton<ThemeMode>(
+                    value: currentMode,
+                    underline: SizedBox(),
+                    icon: Icon(Icons.arrow_drop_down_rounded),
+                    onChanged: (ThemeMode? newValue) {
+                      if (newValue != null) {
+                        themeNotifier.value = newValue;
+                      }
+                    },
+                    items: const [
+                      DropdownMenuItem(
+                        value: ThemeMode.system,
+                        child: Text('Sistema', style: TextStyle(fontSize: 14)),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.light,
+                        child: Text('Claro', style: TextStyle(fontSize: 14)),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.dark,
+                        child: Text('Oscuro', style: TextStyle(fontSize: 14)),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
             _buildSwitchTile(
@@ -88,7 +127,7 @@ class _SettingsViewState extends State<SettingsView> {
               },
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             _buildSectionHeader('Acerca de'),
             _buildListTile(
               icon: Icons.help_outline_rounded,
@@ -101,7 +140,7 @@ class _SettingsViewState extends State<SettingsView> {
               onTap: () {},
             ),
 
-            const SizedBox(height: 100), // Espaciado final para el Navbar
+            SizedBox(height: 100), // Espaciado final para el Navbar
           ],
         ),
       ),
@@ -113,11 +152,11 @@ class _SettingsViewState extends State<SettingsView> {
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
           letterSpacing: -0.5,
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -135,22 +174,22 @@ class _SettingsViewState extends State<SettingsView> {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.black87, size: 22),
+        child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 22),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
       ),
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
             )
           : null,
-      trailing: Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
+      trailing: Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
       onTap: onTap,
     );
   }
@@ -167,20 +206,20 @@ class _SettingsViewState extends State<SettingsView> {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.black87, size: 22),
+        child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 22),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
       ),
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: Colors.black, // Estilo Next.js negro
-        activeTrackColor: Colors.black12,
+        activeThumbColor: Theme.of(context).colorScheme.onSurface, // Estilo Next.js negro
+        activeTrackColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
       ),
     );
   }

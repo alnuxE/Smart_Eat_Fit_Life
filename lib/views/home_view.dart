@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../controllers/home_controller.dart';
 import '../widgets/metric_card.dart';
 import 'package:smart_eat_fit_life/views/tips_view.dart';
@@ -56,36 +57,37 @@ class _HomeViewState extends State<HomeView>
     ];
 
     return Scaffold(
-      body: SafeArea(child: pages[_selectedIndex]),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      extendBody: true,
+      body: SafeArea(bottom: false, child: pages[_selectedIndex]),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
         height: 70,
-        elevation: 0,
-        backgroundColor: const Color(0xFFF9FAFB), // Igual al fondo del scaffold
-        indicatorColor: Colors.black.withValues(
-          alpha: 0.08,
-        ), // Color de la "píldora"
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded, color: Colors.black),
-            label: 'Inicio',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tips_and_updates_outlined),
-            selectedIcon: Icon(
-              Icons.tips_and_updates_rounded,
-              color: Colors.black,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(35),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
-            label: 'Consejos',
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(35),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavItem(Icons.dashboard_outlined, Icons.dashboard_rounded, 'Inicio', 0),
+                _buildNavItem(Icons.tips_and_updates_outlined, Icons.tips_and_updates_rounded, 'Comunidad', 1),
+                _buildNavItem(Icons.settings_outlined, Icons.settings_rounded, 'Ajustes', 2),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded, color: Colors.black),
-            label: 'Ajustes',
-          ),
-        ],
+        ),
       ),
       floatingActionButton: _selectedIndex == 0
           ? ScaleTransition(
@@ -99,16 +101,46 @@ class _HomeViewState extends State<HomeView>
               ),
               child: FloatingActionButton(
                 onPressed: _showAddEventBottomSheet,
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.onSurface,
+                foregroundColor: Theme.of(context).colorScheme.surface,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.add_rounded),
+                child: Icon(Icons.add_rounded),
               ),
             )
           : null,
+    );
+  }
+  Widget _buildNavItem(IconData icon, IconData selectedIcon, String label, int index) {
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedScale(
+              scale: isSelected ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(isSelected ? selectedIcon : icon, color: isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            if (isSelected)
+              Text(
+                label,
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -161,21 +193,21 @@ class _HomeViewState extends State<HomeView>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               '¡Hola, Alex! 👋',
                               style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -1,
-                                color: Colors.black87,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.2,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               'Hoy es un gran día para entrenar.',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
+                                fontSize: 16,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -184,103 +216,136 @@ class _HomeViewState extends State<HomeView>
                         GestureDetector(
                           onTap: _showProfileBottomSheet,
                           child: Container(
-                            padding: const EdgeInsets.all(2),
+                            padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.grey.shade300,
-                                width: 2,
+                              gradient: const LinearGradient(
+                                colors: [Colors.black87, Colors.grey],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             child: CircleAvatar(
-                              radius: 24,
-                              backgroundColor: Colors.grey.shade100,
-                              child: const Icon(
+                              radius: 26,
+                              backgroundColor: Theme.of(context).colorScheme.surface,
+                              child: Icon(
                                 Icons.person_rounded,
-                                color: Colors.black87,
-                                size: 28,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                size: 30,
                               ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     // Tarjeta "Hero" (Resumen Diario Premium)
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
-                        color:
-                            Colors.black, // Color sólido fuerte estilo Next.js
-                        borderRadius: BorderRadius.circular(24),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF374151), Color(0xFF111827)], // Neutral premium dark gradient
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Stack(
+                        clipBehavior: Clip.none,
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Objetivo Diario',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  '70% Completado',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                // Barra de progreso
-                                Container(
-                                  height: 8,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: FractionallySizedBox(
-                                    alignment: Alignment.centerLeft,
-                                    widthFactor: 0.7,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          Positioned(
+                            right: -20,
+                            bottom: -20,
+                            child: Icon(
+                              Icons.local_fire_department_rounded,
+                              size: 150,
+                              color: Colors.white.withValues(alpha: 0.1),
                             ),
                           ),
-                          const SizedBox(width: 24),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.local_fire_department_rounded,
-                              color: Colors.white,
-                              size: 40,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'Objetivo Diario',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      '70% Completado',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: -1,
+                                      ),
+                                    ),
+                                    SizedBox(height: 24),
+                                    // Barra de progreso mejorada
+                                    Stack(
+                                      children: [
+                                        Container(
+                                          height: 12,
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        FractionallySizedBox(
+                                          alignment: Alignment.centerLeft,
+                                          widthFactor: 0.7,
+                                          child: Container(
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [Colors.orangeAccent, Colors.deepOrange],
+                                              ),
+                                              borderRadius: BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.deepOrange.withValues(alpha: 0.5),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -289,19 +354,19 @@ class _HomeViewState extends State<HomeView>
                 ),
               ),
             ),
-            const SizedBox(height: 36),
+            SizedBox(height: 36),
 
             // Título Dinámico de la Sección de Métricas
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Tus Métricas',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 TextButton(
@@ -312,11 +377,11 @@ class _HomeViewState extends State<HomeView>
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text('Ver más'),
+                  child: Text('Ver más'),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             LayoutBuilder(
               builder: (context, constraints) {
@@ -367,36 +432,51 @@ class _HomeViewState extends State<HomeView>
                       opacity: opacityAnim,
                       child: SlideTransition(
                         position: slideAnim,
-                        child: MetricCard(metric: metrics[index]),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: MetricCard(metric: metrics[index]),
+                          ),
+                        ),
                       ),
                     );
                   },
                 );
               },
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             // Título interactivo de la agenda
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Agenda de Hoy',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 TextButton(
                   onPressed: _showAddEventBottomSheet,
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.black,
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
                     padding: EdgeInsets.zero,
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.add, size: 18),
                       SizedBox(width: 4),
@@ -409,12 +489,12 @@ class _HomeViewState extends State<HomeView>
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _controller.dailyEvents.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              separatorBuilder: (context, index) => SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final event = _controller.dailyEvents[index];
 
@@ -449,136 +529,146 @@ class _HomeViewState extends State<HomeView>
                   child: SlideTransition(
                     position: slideAnim,
                     child: Container(
-                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: (event['color'] as Color).withValues(
-                                alpha: 0.1,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              event['icon'] as IconData,
-                              color: event['color'] as Color,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  event['title'] as String,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  event['desc'] as String,
-                                  style: const TextStyle(
-                                    color: Colors.black54,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            event['time'] as String,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          PopupMenuButton<String>(
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(
-                              Icons.more_vert_rounded,
-                              color: Colors.black54,
-                              size: 20,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            onSelected: (value) {
-                              if (value == 'editar') {
-                                _showEditEventBottomSheet(index, event);
-                              } else if (value == 'terminado') {
-                                setState(() {
-                                  _controller.dailyEvents[index]['color'] =
-                                      Colors.green;
-                                });
-                              } else if (value == 'cancelado') {
-                                setState(() {
-                                  _controller.dailyEvents[index]['color'] =
-                                      Colors.grey;
-                                });
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'terminado',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_outline_rounded,
-                                      size: 20,
-                                      color: Colors.green,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('Terminado'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'editar',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.edit_outlined,
-                                      size: 20,
-                                      color: Colors.blueAccent,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('Editar'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'cancelado',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.cancel_outlined,
-                                      size: 20,
-                                      color: Colors.redAccent,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text('Cancelado'),
-                                  ],
-                                ),
-                              ),
-                            ],
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
+                      ),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              decoration: BoxDecoration(
+                                color: event['color'] as Color,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(20),
+                                  bottomLeft: Radius.circular(20),
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: (event['color'] as Color).withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(event['icon'] as IconData, color: event['color'] as Color, size: 24),
+                                    ),
+                                    SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            event['title'] as String,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              letterSpacing: -0.3,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            event['desc'] as String,
+                                            style: TextStyle(
+                                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          event['time'] as String,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                            color: Theme.of(context).colorScheme.onSurface,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        PopupMenuButton<String>(
+                                          padding: EdgeInsets.zero,
+                                          icon: Icon(Icons.more_horiz_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                          onSelected: (value) {
+                                            if (value == 'editar') {
+                                              _showEditEventBottomSheet(index, event);
+                                            } else if (value == 'terminado') {
+                                              setState(() {
+                                                _controller.dailyEvents[index]['color'] = Colors.green;
+                                              });
+                                            } else if (value == 'cancelado') {
+                                              setState(() {
+                                                _controller.dailyEvents[index]['color'] = Colors.grey;
+                                              });
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            const PopupMenuItem(
+                                              value: 'terminado',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.check_circle_rounded, color: Colors.green),
+                                                  SizedBox(width: 8),
+                                                  Text('Completar'),
+                                                ],
+                                              ),
+                                            ),
+                                            const PopupMenuItem(
+                                              value: 'editar',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit_rounded, color: Colors.blueAccent),
+                                                  SizedBox(width: 8),
+                                                  Text('Editar'),
+                                                ],
+                                              ),
+                                            ),
+                                            const PopupMenuItem(
+                                              value: 'cancelado',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.cancel_rounded, color: Colors.redAccent),
+                                                  SizedBox(width: 8),
+                                                  Text('Cancelar'),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 );
               },
             ),
-            const SizedBox(
+            SizedBox(
               height: 100,
             ), // Espacio extra grande al final para que no estorbe el FAB
           ],
@@ -592,7 +682,7 @@ class _HomeViewState extends State<HomeView>
     return Center(
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w500,
           color: Colors.black54,
@@ -605,7 +695,7 @@ class _HomeViewState extends State<HomeView>
   void _showProfileBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -621,52 +711,52 @@ class _HomeViewState extends State<HomeView>
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.grey.shade100,
-                    child: const Icon(
+                    child: Icon(
                       Icons.person_rounded,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                       size: 48,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'Alex',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     'alex@smartfitlife.com',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   ListTile(
-                    leading: const Icon(Icons.person_outline_rounded),
-                    title: const Text(
+                    leading: Icon(Icons.person_outline_rounded),
+                    title: Text(
                       'Editar Perfil',
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
+                    trailing: Icon(Icons.chevron_right_rounded),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.pie_chart_outline_rounded),
-                    title: const Text(
+                    leading: Icon(Icons.pie_chart_outline_rounded),
+                    title: Text(
                       'Mis Objetivos',
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded),
+                    trailing: Icon(Icons.chevron_right_rounded),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
                   const Divider(height: 24),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.logout_rounded,
                       color: Colors.redAccent,
                     ),
-                    title: const Text(
+                    title: Text(
                       'Cerrar Sesión',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
@@ -705,7 +795,7 @@ class _HomeViewState extends State<HomeView>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -727,50 +817,50 @@ class _HomeViewState extends State<HomeView>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Nuevo Evento',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     TextField(
                       controller: titleController,
                       decoration: InputDecoration(
                         labelText: 'Título del evento',
-                        prefixIcon: const Icon(Icons.title_rounded),
+                        prefixIcon: Icon(Icons.title_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.onSurface,
                             width: 2,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     TextField(
                       controller: descController,
                       decoration: InputDecoration(
                         labelText: 'Breve descripción',
-                        prefixIcon: const Icon(Icons.description_rounded),
+                        prefixIcon: Icon(Icons.description_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.onSurface,
                             width: 2,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -793,11 +883,11 @@ class _HomeViewState extends State<HomeView>
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.access_time_rounded),
-                                  const SizedBox(width: 8),
+                                  Icon(Icons.access_time_rounded),
+                                  SizedBox(width: 8),
                                   Text(
                                     selectedTime.format(context),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -806,7 +896,7 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -820,7 +910,7 @@ class _HomeViewState extends State<HomeView>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Recordar',
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
@@ -836,12 +926,12 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'Elige un icono',
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -866,7 +956,7 @@ class _HomeViewState extends State<HomeView>
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -891,14 +981,14 @@ class _HomeViewState extends State<HomeView>
                           Navigator.pop(context); // Cerramos el panel
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).colorScheme.onSurface,
+                          foregroundColor: Theme.of(context).colorScheme.surface,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Guardar Evento',
                           style: TextStyle(
                             fontSize: 16,
@@ -907,7 +997,7 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -960,7 +1050,7 @@ class _HomeViewState extends State<HomeView>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -980,50 +1070,50 @@ class _HomeViewState extends State<HomeView>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Editar Evento',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     TextField(
                       controller: titleController,
                       decoration: InputDecoration(
                         labelText: 'Título del evento',
-                        prefixIcon: const Icon(Icons.title_rounded),
+                        prefixIcon: Icon(Icons.title_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.onSurface,
                             width: 2,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     TextField(
                       controller: descController,
                       decoration: InputDecoration(
                         labelText: 'Breve descripción',
-                        prefixIcon: const Icon(Icons.description_rounded),
+                        prefixIcon: Icon(Icons.description_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Colors.black,
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.onSurface,
                             width: 2,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
@@ -1046,11 +1136,11 @@ class _HomeViewState extends State<HomeView>
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.access_time_rounded),
-                                  const SizedBox(width: 8),
+                                  Icon(Icons.access_time_rounded),
+                                  SizedBox(width: 8),
                                   Text(
                                     selectedTime.format(context),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -1059,7 +1149,7 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -1073,7 +1163,7 @@ class _HomeViewState extends State<HomeView>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Recordar',
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
@@ -1089,12 +1179,12 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'Elige un icono',
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -1119,7 +1209,7 @@ class _HomeViewState extends State<HomeView>
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -1143,14 +1233,14 @@ class _HomeViewState extends State<HomeView>
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).colorScheme.onSurface,
+                          foregroundColor: Theme.of(context).colorScheme.surface,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Actualizar Evento',
                           style: TextStyle(
                             fontSize: 16,
@@ -1159,7 +1249,7 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),

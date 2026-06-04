@@ -12,11 +12,11 @@ class MetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: Colors.grey.shade200,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           width: 1,
         ), // Borde minimalista Next.js
       ),
@@ -33,10 +33,10 @@ class MetricCard extends StatelessWidget {
             children: [
               Text(
                 metric.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -48,16 +48,16 @@ class MetricCard extends StatelessWidget {
                 children: [
                   Text(
                     metric.currentValue,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     metric.unit,
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -76,13 +76,13 @@ class MetricCard extends StatelessWidget {
                               .map((data) => FlSpot(data.x, data.y))
                               .toList(),
                           isCurved: true,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                           barWidth: 2.5,
                           isStrokeCapRound: true,
                           dotData: FlDotData(show: false),
                           belowBarData: BarAreaData(
                             show: true,
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                           ),
                         ),
                       ],

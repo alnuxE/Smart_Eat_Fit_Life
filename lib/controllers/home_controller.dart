@@ -45,6 +45,7 @@ class HomeController {
       'color': Colors.orange,
       'readTime': '3 min',
       'featured': true, // Este será nuestro consejo principal (Hero)
+      'rating': 4.8,
     },
     {
       'category': 'Ejercicio',
@@ -55,6 +56,7 @@ class HomeController {
       'color': Colors.blue,
       'readTime': '4 min',
       'featured': false,
+      'rating': 4.5,
     },
     {
       'category': 'Descanso',
@@ -65,6 +67,7 @@ class HomeController {
       'color': Colors.purple,
       'readTime': '2 min',
       'featured': false,
+      'rating': 5.0,
     },
     {
       'category': 'Hidratación',
@@ -75,6 +78,7 @@ class HomeController {
       'color': Colors.cyan,
       'readTime': '1 min',
       'featured': false,
+      'rating': 4.2,
     },
   ];
 
